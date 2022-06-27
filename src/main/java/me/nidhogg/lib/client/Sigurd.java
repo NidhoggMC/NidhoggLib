@@ -15,6 +15,7 @@ import lombok.Getter;
 import lombok.Setter;
 import me.nidhogg.lib.Instance;
 import me.nidhogg.lib.request.RequestMetadata;
+import org.jetbrains.annotations.Nullable;
 
 @AllArgsConstructor
 public class Sigurd {
@@ -23,6 +24,7 @@ public class Sigurd {
 	private final Gson gson = new Gson();
 	private final String userAgent = "Nidhogg/" + Sigurd.class.getPackage().getImplementationVersion();
 	private final HttpClient httpClient = HttpClient.newHttpClient();
+	@Nullable
 	@Setter
 	@Getter
 	private String authorisation;

@@ -10,5 +10,5 @@ public class Instance {
 	@Getter
 	private final String rootUrl;
 	@Getter
-	private final Sigurd sigurd = new Sigurd(this);
+	private final Sigurd sigurd = new Sigurd(this, null);
 }
