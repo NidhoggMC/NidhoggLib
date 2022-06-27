@@ -11,6 +11,8 @@ import java.net.http.HttpRequest.BodyPublishers;
 import java.net.http.HttpResponse;
 import java.net.http.HttpResponse.BodyHandlers;
 import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.Setter;
 import me.nidhogg.lib.Instance;
 import me.nidhogg.lib.request.RequestMetadata;
 
@@ -21,16 +23,21 @@ public class Sigurd {
 	private final Gson gson = new Gson();
 	private final String userAgent = "Nidhogg/" + Sigurd.class.getPackage().getImplementationVersion();
 	private final HttpClient httpClient = HttpClient.newHttpClient();
+	@Setter
+	@Getter
+	private String authorisation;
 
 	/**
 	 * <h1>Send Request</h1>
 	 *
+	 * @param authorised   Should the access token be sent with the request?
 	 * @param requestClass The class of request you want to send
 	 * @param args         The arguments to pass to the constructor of the request
 	 * @param <T>          The request
 	 * @return The response from the server
 	 */
-	public <T, R> R post(Class<T> requestClass, Class<R> responseClass, Class<?> parameterTypes, Object... args)
+	public <T, R> R post(boolean authorised, Class<T> requestClass, Class<R> responseClass, Class<?> parameterTypes,
+		Object... args)
 		throws NoSuchMethodException, InvocationTargetException, InstantiationException, IllegalAccessException, IOException, InterruptedException {
 		final RequestMetadata metadata = requestClass.getDeclaredAnnotation(RequestMetadata.class);
 		final String endpoint = metadata.endpoint();
@@ -40,13 +47,16 @@ public class Sigurd {
 		final T created = constructor.newInstance(args);
 		final String json = gson.toJson(created);
 
-		final HttpRequest httpRequest = HttpRequest.newBuilder()
+		final HttpRequest.Builder builder = HttpRequest.newBuilder()
 			.POST(BodyPublishers.ofString(json))
 			.header("User-Agent", userAgent)
-			.uri(joinedUri)
-			.build();
+			.uri(joinedUri);
 
-		final HttpResponse<String> response = httpClient.send(httpRequest, BodyHandlers.ofString());
+		if (authorised) {
+			builder.header("Authorization", authorisation);
+		}
+
+		final HttpResponse<String> response = httpClient.send(builder.build(), BodyHandlers.ofString());
 
 		return gson.fromJson(response.body(), responseClass);
 	}
